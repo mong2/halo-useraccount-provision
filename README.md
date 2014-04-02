@@ -1,5 +1,6 @@
 #Script to provision server users in the CloudPassage API
 This script allows you to provision users on managed nodes using the CloudPassage API.  If the user already exists, the script will request a password reset for that account.
+When invoked, the script rolls through all active servers in the specified group, provisioning accounts or resetting passwords as appropriate.
 
 ##Before We Begin
 Please have a look at the config.conf file.  You will need to set your clientid and clientsecret or the script simply won't work.
