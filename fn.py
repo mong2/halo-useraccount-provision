@@ -1,6 +1,14 @@
 #!/usr/bin/python
 import api
 
+def amisane(apikey,apisecret):
+    sanity = True
+    if apikey == '':
+        return False
+    if apisecret == '':
+        return False
+    return sanity
+
 def printresults(serverlist):
     print "\n\n\n"
     print "Results:"

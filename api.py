@@ -10,7 +10,7 @@ import httplib
 import base64
 import json
 import urlparse
-
+import sys
 
 def apihit(host,conntype,authtoken,queryurl,reqbody):
     connection = httplib.HTTPSConnection(host)
@@ -42,7 +42,6 @@ def getgroupid(host,authtoken,groupname):
             continue
     #if we get to this point, there wasn't a match
     print "No matching group name found"
-    connection.close()
     sys.exit()
 
 def changepass(host,authtoken,username,serverid,pwlength,pwspecial,pwnumbers,pwuppercase):

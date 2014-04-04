@@ -1,5 +1,5 @@
 #Script to provision server users in the CloudPassage API
-This script allows you to provision users on managed nodes using the CloudPassage API.  If the user already exists, the script will request a password reset for that account.
+This script allows you to provision users on managed nodes using the CloudPassage API.  It accepts arguments for the following: username, groupname, server group name.  Username and groupname are for the account to be provisioned across the server group that you name.  Those values override the variables set in config.conf.  If the user already exists, the script will request a password reset for that account.
 When invoked, the script rolls through all active servers in the specified group, provisioning accounts or resetting passwords as appropriate.
 
 ##Before We Begin
@@ -15,7 +15,7 @@ Edit config.conf to set your API key and secret, as well as any other values you
 
 ####Here’s a breakdown of the files you see here:
 
-* **provisionusers.py**            			Main function
+* **provisionusers.py**            			Run this one.
 
 * **server.py**		                        Contains Server object definition 
 

@@ -42,6 +42,11 @@ def main(argv):
     clientsecret = config["clientsecret"]
     host = config["host"]
     reqbody =  {"account": {"username": accountname,"comment": accountcomment,"groups": accountgroups, "password": {"length": passwordlength, "include_special": passwordspecialchar, "include_numbers": passwordnumberchar, "include_uppercase": passworduppercasechar}}}
+# Sanity check, let's make sure that we aren't speaking crazytalk
+    sanity = fn.amisane(clientid,clientsecret)
+    if sanity == False:
+        print "Insane in the membrane.  Crazy insane, got no keys."
+        sys.exit(2)
 # Call the routine to set the autentication token
     authtoken = api.getauthtoken(host,clientid,clientsecret)
 # Determine the group ID number
@@ -69,7 +74,7 @@ def main(argv):
             if node.password != '':
                 continue
             else:
-                result,pw = fn.passwordcheck(node.url,authtoken,host)
+                result,pw = fn.passwordcheck(str(node.url),str(authtoken),str(host))
                 if result == "completed":
 # If the password is empty and job is complete, something went wrong.  We resubmit the job.
                     if pw == ('' or None):
