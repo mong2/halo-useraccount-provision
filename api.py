@@ -22,6 +22,8 @@ def apihit(host,conntype,authtoken,queryurl,reqbody):
         connection.request(conntype, queryurl, json.dumps(reqbody), tokenheader)
     response = connection.getresponse()
     respbody = response.read()
+    print response
+    print response.status
     jsondata = respbody.decode()
     connection.close()
     return json.loads(jsondata)
@@ -44,7 +46,7 @@ def getgroupid(host,authtoken,groupname):
     print "No matching group name found"
     sys.exit()
 
-def changepass(host,authtoken,username,serverid,pwlength,pwspecial,pwnumbers,pwuppercase):
+def changepass(host,authtoken,username,serverid,pwlength,pwspecial,pwnumbers,pwuppercase,skey):
 #We set up the password change request body here
     reqbody =  {"password": {"length": pwlength, "include_special": pwspecial, "include_numbers": pwnumbers, "include_uppercase": pwuppercase}}
     queryurl = "/v1/servers/" + serverid + "/accounts/"+username+"/password"
@@ -78,8 +80,6 @@ def doesuserexist(host,authtoken,user,serverid):
 
 def requestcreateuser(host,authtoken,serveridno,reqbody):
     queryurl = "/v1/servers/" + serveridno + "/accounts"
-    # jsondata = apihit(host,"POST", authtoken, queryurl, reqbody)
-    # print "User creation vars: URL:",queryurl," Token: ",authtoken,"Request: ",reqbody
     jsondata = apihit(host,"POST", authtoken, queryurl, reqbody)
     deets = ''
     try:
@@ -90,6 +90,9 @@ def requestcreateuser(host,authtoken,serveridno,reqbody):
     if deets != '':
         print "Well, something went wrong.  Details follow:\n",deets,"\nExiting"
         sys.exit(2)
+    print "URL: ",queryurl
+    print "Request Body: ",reqbody
+    print "Response: ",jsondata
     cmdurl = jsondata["command"]["url"]
     return cmdurl
 

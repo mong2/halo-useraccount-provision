@@ -8,6 +8,11 @@ def amisane(apikey,apisecret):
     if apisecret == '':
         return False
     return sanity
+def checkreq(reqbody):
+    #reqbody =  {"account": {"username": accountname,"comment": accountcomment,"groups": accountgroups, "password": {"length": passwordlength, "include_special": passwordspecialchar, "include_numbers": passwordnumberchar, "include_uppercase": passworduppercasechar}}}
+    #Really need to complete this... it is meant to check the sanity of the reqbody, which can indicate psychosis in whoever populated the configs.
+
+    return True
 
 def printresults(serverlist):
     print "\n\n\n"
@@ -40,11 +45,21 @@ def passwordcheck(url,key,host):
         #print checkresults["command"]["result"]
         return ("failed", '')
 
-def provision(host,authtoken,accountname,accountcomment,accountgroups,serveridno,passwordlength,passwordspecialchar,passwordnumberchar,passworduppercasechar):
-    reqbody =  {"account": {"username": accountname,"comment": accountcomment,"groups": accountgroups, "password": {"length": passwordlength, "include_special": passwordspecialchar, "include_numbers": passwordnumberchar, "include_uppercase": passworduppercasechar}}}
-    if api.doesuserexist(host,authtoken,accountname,serveridno):
-        print "\nAccount ", accountname , " already exists on serveridno: ",serveridno
-        url = api.changepass(host,authtoken,accountname,serveridno,passwordlength,passwordspecialchar,passwordnumberchar,passworduppercasechar)
+def provision(host,authtoken,accountname,accountcomment,accountgroups,serveridno,passwordlength,passwordspecialchar,passwordnumberchar,passworduppercasechar,skey):
+    if skey == '':
+        reqbody =  {"account": {"username": accountname,"comment": accountcomment,"groups": accountgroups, "password": {"length": passwordlength, "include_special": passwordspecialchar, "include_numbers": passwordnumberchar, "include_uppercase": passworduppercasechar}}}
+        if api.doesuserexist(host,authtoken,accountname,serveridno):
+            print "\nAccount ", accountname , " already exists on serveridno: ",serveridno
+            url = api.changepass(host,authtoken,accountname,serveridno,passwordlength,passwordspecialchar,passwordnumberchar,passworduppercasechar,skey)
+        else:
+            url = api.requestcreateuser(host,authtoken,serveridno,reqbody)
+        return url
     else:
-        url = api.requestcreateuser(host,authtoken,serveridno,reqbody)
-    return url
+        reqbody =  {"account": {"username": accountname,"comment": accountcomment,"groups": accountgroups, "password": {"length": passwordlength, "include_special": passwordspecialchar, "include_numbers": passwordnumberchar, "include_uppercase": passworduppercasechar},"ssh_authorized_keys": [{ "key": skey}]}}
+        if api.doesuserexist(host,authtoken,accountname,serveridno):
+            print "\nAccount ", accountname , " already exists on serveridno: ",serveridno
+            url = api.changepass(host,authtoken,accountname,serveridno,passwordlength,passwordspecialchar,passwordnumberchar,passworduppercasechar,skey)
+        else:
+            url = api.requestcreateuser(host,authtoken,serveridno,reqbody)
+        return url
+
