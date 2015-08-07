@@ -22,47 +22,10 @@ def apihit(host,conntype,authtoken,queryurl,reqbody):
         connection.request(conntype, queryurl, json.dumps(reqbody), tokenheader)
     response = connection.getresponse()
     respbody = response.read()
-    print"1"
-    print response
-    print response.status
-    print respbody
-    print "last"
+    reqstatus = response.status
     jsondata = respbody.decode()
     connection.close()
-    return json.loads(jsondata)
-
-def getserverlist(host,authtoken,groupid):
-    queryurl = "/v1/groups/"+groupid+"/servers"
-    jsondata = apihit(host,"GET", authtoken, queryurl, '')
-    return jsondata
-
-def getgroupid(host,authtoken,groupname):
-    queryurl = "/v1/groups"
-    jsondata = apihit(host,"GET", authtoken, queryurl, '')
-    for g in jsondata["groups"]:
-        if g["name"] == groupname:
-            groupid = g["id"]
-            return groupid
-        else:
-            continue
-    #if we get to this point, there wasn't a match
-    print "No matching group name found"
-    sys.exit()
-def updatessh(host, authtoken, username, serverid, skey):
-    #We set up the new public key request body here
-    reqbody = {"account":{"ssh_authorized_keys":[{"key": skey}]}}
-    queryurl = "/v1/servers/" + serverid + "/accounts/" + username
-    jsondata = apihit(host, "PUT", authtoken, queryurl, reqbody)
-    print jsondata
-    #cmdurl = jsondata["command"]["url"]
-    
-def changepass(host,authtoken,username,serverid,pwlength,pwspecial,pwnumbers,pwuppercase,skey):
-#We set up the password change request body here
-    reqbody =  {"password": {"length": pwlength, "include_special": pwspecial, "include_numbers": pwnumbers, "include_uppercase": pwuppercase}}
-    queryurl = "/v1/servers/" + serverid + "/accounts/"+username+"/password"
-    jsondata = apihit(host,"PUT", authtoken, queryurl, reqbody)
-    cmdurl = jsondata["command"]["url"]
-    return cmdurl
+    return reqstatus, json.loads(jsondata)
 
 def getauthtoken(host,clientid,clientsecret):
     # Get the access token used for the API calls.
@@ -78,9 +41,71 @@ def getauthtoken(host,clientid,clientsecret):
     connection.close()
     return key
 
+def getserverlist(host,authtoken,groupid):
+    queryurl = "/v1/groups/"+groupid+"/servers"
+    reqstatus, jsondata = apihit(host,"GET", authtoken, queryurl, '')
+
+    if reqstatus == 200:
+        print "200 Get Server List"
+    else:
+        print reqstatus, "Get Server List -- Something is wrong"
+        sys.exit()
+    return jsondata
+
+def getgroupid(host,authtoken,groupname):
+    queryurl = "/v1/groups"
+    reqstatus, jsondata = apihit(host,"GET", authtoken, queryurl, '')
+    if reqstatus == 200:
+        print "200 Get Group Id"
+    else:
+        print reqstatus, " Get Group Id -- Something is wrong"
+        sys.exit()
+    for g in jsondata["groups"]:
+        if g["name"] == groupname:
+            groupid = g["id"]
+            return groupid
+        else:
+            continue
+    #if we get to this point, there wasn't a match
+    print "No matching group name found"
+    sys.exit()
+def updatessh(host, authtoken, username, serverid, skey):
+    #We set up the new public key request body here
+    reqbody = {"account":{"ssh_authorized_keys":[{"key": skey}]}}
+    queryurl = "/v1/servers/" + serverid + "/accounts/" + username
+    reqstatus, jsondata = apihit(host, "PUT", authtoken, queryurl, reqbody)
+    if reqstatus == 202:
+        print "202 Update SSH"
+    else:
+        print reqstatus, " Update SSH -- Something is wrong"
+        sys.exit()
+    print jsondata
+    #cmdurl = jsondata["command"]["url"]
+
+def changepass(host,authtoken,username,serverid,pwlength,pwspecial,pwnumbers,pwuppercase,skey):
+#We set up the password change request body here
+    reqbody =  {"password": {"length": pwlength, "include_special": pwspecial, "include_numbers": pwnumbers, "include_uppercase": pwuppercase}}
+    queryurl = "/v1/servers/" + serverid + "/accounts/"+username+"/password"
+    reqstatus, jsondata = apihit(host,"PUT", authtoken, queryurl, reqbody)
+    if reqstatus == 200:
+        print "200 Password"
+        cmdurl = jsondata["command"]["url"]
+    else:
+        print reqstatus, "Password -- Something is wrong"
+        sys.exit()
+    return cmdurl
+
+
+
 def doesuserexist(host,authtoken,user,serverid):
     queryurl = "/v1/servers/"+serverid+"/accounts?search[username]="+user
-    checkresponse = apihit(host,"GET", authtoken, queryurl, '')
+    reqstatus, checkresponse = apihit(host,"GET", authtoken, queryurl, '')
+
+    if reqstatus == 200:
+        print "200 Check user existance"
+    else:
+        print reqstatus, " Check user existance -- Somethig is wrong"
+        sys.exit()
     try:
         if checkresponse["accounts"][0]["username"] == user :
             # print "User "+user+" exists"
@@ -90,7 +115,7 @@ def doesuserexist(host,authtoken,user,serverid):
 
 def requestcreateuser(host,authtoken,serveridno,reqbody):
     queryurl = "/v1/servers/" + serveridno + "/accounts"
-    jsondata = apihit(host,"POST", authtoken, queryurl, reqbody)
+    reqstatus, jsondata = apihit(host,"POST", authtoken, queryurl, reqbody)
     deets = ''
     try:
         deets = jsondata["errors"][0]["details"]
@@ -109,9 +134,13 @@ def requestcreateuser(host,authtoken,serveridno,reqbody):
 def checkcommand(authtoken,url,host):
     parsedurl = urlparse.urlparse(url)
     checkpath = parsedurl.path
-    checkresponse = apihit(host,"GET", authtoken, checkpath, '')
+    reqstatus,checkresponse = apihit(host,"GET", authtoken, checkpath, '')
     return checkresponse
 
 def samscan(host, authtoken, serveridno, reqbody):
     queryurl = "/v1/servers/" + serveridno + "/scans"
-    scan = apihit(host, "POST", authtoken, queryurl,reqbody)
+    reqstatus, scan = apihit(host, "POST", authtoken, queryurl,reqbody)
+    if reqstatus == 202:
+        print "202 SAM scan"
+    else:
+        print reqstatus, " SAM scan -- Something is wrong"
